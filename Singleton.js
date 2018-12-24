@@ -36,4 +36,4 @@ var single1 = single('a');
 var single2 = single('b');
 
 single1.getName(); // a
-single2.getName(); // b
+single2.getName(); // a
