@@ -1,33 +1,41 @@
 var strategies = {
-    'isEmpty': function(value, errorMsg) {
+    'isEmpty': function (value, errorMsg) {
         if (value === '') {
             return errorMsg;
         }
     },
-    'minLength': function(value, errorMsg, length) {
+    'minLength': function (value, errorMsg, length) {
         if (value.length < length) {
             return errorMsg;
         }
     },
-    'isMobile': function(value, errorMsg) {
+    'isMobile': function (value, errorMsg) {
         if (!/(^1[3|5|8][0-9]{9}$)/.test(value)) {
             return errorMsg;
         }
     }
 }
 
-var Validator = function() {
+var Validator = function () {
     this.cache = []; // 校验规则
 }
 
-Validator.prototype.add = function(rule, value, errorMsg) {
-    let args = Array.prototype.slice.call(arguments,1); // 把参数切割出来
-    this.cache.push(function(){
-        return strategies[rule](...args);
-    });
+Validator.prototype.add = function () {
+    for (let i = 1; i < arguments.length; i++) {
+        let rule = arguments[i][0];
+        let args = arguments[i].slice(1); // 把参数切割出来
+        if (typeof arguments[0] !== 'string') {
+            console.log('验证器需要先设置value');
+            return;
+        }
+        args.unshift(arguments[0]);
+        this.cache.push(function () {
+            return strategies[rule](...args);
+        });
+    }
 }
 
-Validator.prototype.start = function() {
+Validator.prototype.start = function () {
     for (let i = 0; i < this.cache.length; i++) {
         let validateFunc = this.cache[i];
         let msg = validateFunc();
@@ -38,6 +46,7 @@ Validator.prototype.start = function() {
 }
 
 let test = new Validator();
-test.add('isEmpty', '1', '不能为空');
-test.add('minLength', '1', '长度不够', 5);
+// 需要注意的是如果第一条没有通过，不会执行第二条
+test.add('33', ['isEmpty', '不能为空'], ['minLength', '长度不够', 5]);
+test.add('', ['isEmpty', '不能为空'], ['minLength', '长度不够', 5]);
 console.log(test.start());
